@@ -38,7 +38,7 @@ npm -v
 ### 1 - Clonar o repositório
 
 ``` console
-git clone https://github.com/seuusuario/roll-dice.git
+git clone https://github.com/MarianiPedro/roll-dice.git
 cd roll-dice
 ```
 
