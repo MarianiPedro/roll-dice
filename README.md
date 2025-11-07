@@ -1,73 +1,132 @@
-# React + TypeScript + Vite
+# Roll The Dice — Aplicação React + Node.js
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este projeto simula a rolagem de dados reais (D4, D6, D8, D10, D12, D20) com uma interface desenvolvida em React + TypeScript + TailwindCSS e um servidor Node.js responsável por gerar os resultados aleatórios e retornar ao front-end.
 
-Currently, two official plugins are available:
+## Estrutura do Projeto
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+``` text
+roll-dice
+│
+├── src/
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── index.css
+├── index.html
+├── package.json
+├── tailwind.config.js
+├── server.js        ← Servidor Node.js
+├── package.json
+└── README.md
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Pré-requisitos
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Antes de rodar o projeto, verifique se você tem instalado:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+* Node.js versão 18 ou superior
+* npm
+
+Para confirmar, rode:
+
+``` console
+node -v
+npm -v
 ```
+
+## Como rodar o projeto
+
+### 1 - Clonar o repositório
+
+``` console
+git clone https://github.com/seuusuario/roll-dice.git
+cd roll-dice
+```
+
+### 2 - Instalar dependências do Front-end
+
+Dentro da pasta do projeto (onde está o package.json gerado pelo Vite):
+
+``` console
+npm install
+```
+
+### 3 - Instalar dependências do Back-end
+
+Ainda na raiz do projeto, instale o Express e o CORS:
+
+``` console
+npm install express cors
+```
+
+### 4 - Rodar o servidor (Back-end)
+
+Use o arquivo server.js com este conteúdo:
+
+``` js
+import express from "express";
+import cors from "cors";
+
+const app = express();
+app.use(cors());
+
+const DICE = {
+  d4: 4,
+  d6: 6,
+  d8: 8,
+  d10: 10,
+  d12: 12,
+  d20: 20,
+};
+
+app.get("/api/roll", (req, res) => {
+  const dice = String(req.query.dice || "d6").toLowerCase();
+  const sides = DICE[dice];
+  if (!sides) return res.status(400).json({ error: "Tipo de dado inválido" });
+  const result = Math.floor(Math.random() * sides) + 1;
+  res.json({ dice, sides, result, timestamp: new Date().toISOString() });
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`✅ Servidor rodando em http://localhost:${port}`));
+```
+
+Para iniciar o servidor:
+
+``` console
+node server.js
+```
+
+Ao acessar http://localhost:3000/api/roll?die=d6, deve retornar:
+
+``` json
+{
+  "die": "d6",
+  "sides": 6,
+  "result": 4,
+  "timestamp": "2025-11-07T22:10:00.000Z"
+}
+```
+
+### 5 - Configurar o Front-end
+
+Crie um arquivo .env na raiz do projeto com:
+
+``` env
+VITE_API_BASE=http://localhost:3000
+```
+
+### 6 - Rodar o Front-end
+
+No terminal:
+
+``` console
+npm run dev
+```
+
+## Como funciona
+
+* O front-end (React + Tailwind) oferece uma interface limpa e responsiva.
+* O usuário escolhe o tipo de dado (D4, D6, D8, D10, D12, D20) e clica em “Rolar dado”.
+* O front faz uma requisição GET para o back-end em /api/roll?die=dX.
+* O back-end gera um número aleatório e devolve em formato JSON.
+* O resultado aparece na tela, e o histórico das últimas 20 rolagens é exibido.
